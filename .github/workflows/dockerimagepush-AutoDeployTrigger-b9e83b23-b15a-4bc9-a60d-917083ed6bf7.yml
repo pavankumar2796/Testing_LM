@@ -1,0 +1,42 @@
+name: Trigger auto deployment for dockerimagepush
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/dockerimagepush-AutoDeployTrigger-b9e83b23-b15a-4bc9-a60d-917083ed6bf7.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.DOCKERIMAGEPUSH_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: lmtrialeus2.azurecr.io
+          registryUsername: ${{ secrets.DOCKERIMAGEPUSH_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.DOCKERIMAGEPUSH_REGISTRY_PASSWORD }}
+          containerAppName: dockerimagepush
+          resourceGroup: trialEastUs2
+          imageToBuild: lmtrialeus2.azurecr.io/dockerimagepush:${{ github.sha }}
+          
+
+     
+
